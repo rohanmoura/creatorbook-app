@@ -42,6 +42,11 @@ export type CreatorProfile = {
   avatar: string;
   coverTone: string;
   portfolio: string[];
+  completedSessions: number;
+  repeatClientRate: number;
+  verified: boolean;
+  nextAvailableSlots: string[];
+  outcomes: string[];
 };
 
 export type Service = {
@@ -109,4 +114,3 @@ export type CreatorFilters = {
   availability?: string;
   sort?: CreatorSort;
 };
-

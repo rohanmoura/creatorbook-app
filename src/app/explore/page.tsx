@@ -1,12 +1,16 @@
-import { SlidersHorizontal } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpDown, Grid2X2, List, Sparkles } from "lucide-react";
 
-import { CreatorCard } from "@/components/marketplace/creator-card";
+import { ActiveFilterBar } from "@/components/marketplace/active-filter-bar";
+import { CreatorCard, CreatorListCard } from "@/components/marketplace/creator-card";
+import { ExploreFilters } from "@/components/marketplace/explore-filters";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SectionHeader } from "@/components/shared/section-header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { creatorAvailabilityLabels, marketplaceCategories } from "@/lib/constants";
 import { filterCreators } from "@/lib/filters";
-import { creators } from "@/data/mock-creators";
+import { creators, getServicesByCreatorId } from "@/data/mock-creators";
+import { categories } from "@/data/mock-categories";
 import type { CreatorSort } from "@/types/marketplace";
 
 type ExplorePageProps = {
@@ -30,121 +34,138 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
     availability: params.availability,
     sort: params.sort,
   });
+  const hasFocusedQuery = Boolean(
+    params.q ||
+      (params.category && params.category !== "All") ||
+      params.maxPrice ||
+      params.minRating ||
+      params.availability
+  );
 
   return (
-    <main className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[280px_1fr] lg:px-8">
-      <aside className="h-fit rounded-lg border bg-card p-4">
-        <div className="mb-4 flex items-center gap-2 font-medium">
-          <SlidersHorizontal className="size-4" />
-          Filters
-        </div>
-        <form className="grid gap-4">
-          <label className="grid gap-2 text-sm">
-            Search
-            <input
-              name="q"
-              defaultValue={params.q}
-              placeholder="AI, UX, founder..."
-              className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/30"
+    <main>
+      <section className="premium-grid border-b">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+            <SectionHeader
+              eyebrow="Explore creators"
+              title="Browse experts by service, category, and availability"
+              description="Search realistic creator profiles, compare trust signals, and move directly into a booking flow."
             />
-          </label>
-          <label className="grid gap-2 text-sm">
-            Category
-            <select
-              name="category"
-              defaultValue={params.category ?? "All"}
-              className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/30"
-            >
-              <option>All</option>
-              {marketplaceCategories.map((category) => (
-                <option key={category}>{category}</option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-2 text-sm">
-            Max price
-            <select
-              name="maxPrice"
-              defaultValue={params.maxPrice ?? ""}
-              className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/30"
-            >
-              <option value="">Any price</option>
-              <option value="80">Up to $80</option>
-              <option value="100">Up to $100</option>
-              <option value="130">Up to $130</option>
-            </select>
-          </label>
-          <label className="grid gap-2 text-sm">
-            Rating
-            <select
-              name="minRating"
-              defaultValue={params.minRating ?? ""}
-              className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/30"
-            >
-              <option value="">Any rating</option>
-              <option value="4.6">4.6+</option>
-              <option value="4.8">4.8+</option>
-              <option value="4.9">4.9+</option>
-            </select>
-          </label>
-          <label className="grid gap-2 text-sm">
-            Availability
-            <select
-              name="availability"
-              defaultValue={params.availability ?? ""}
-              className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/30"
-            >
-              <option value="">Any time</option>
-              {creatorAvailabilityLabels.map((label) => (
-                <option key={label}>{label}</option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-2 text-sm">
-            Sort
-            <select
-              name="sort"
-              defaultValue={params.sort ?? "recommended"}
-              className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/30"
-            >
-              <option value="recommended">Recommended</option>
-              <option value="rating">Rating</option>
-              <option value="price">Price</option>
-              <option value="newest">Newest</option>
-            </select>
-          </label>
-          <Button type="submit">Apply filters</Button>
-        </form>
-      </aside>
+            <div className="grid grid-cols-3 gap-3 rounded-lg border bg-background p-3 text-center shadow-sm">
+              <div>
+                <p className="text-xl font-semibold">{creators.length}</p>
+                <p className="text-xs text-muted-foreground">Creators</p>
+              </div>
+              <div>
+                <p className="text-xl font-semibold">{categories.length}</p>
+                <p className="text-xs text-muted-foreground">Categories</p>
+              </div>
+              <div>
+                <p className="text-xl font-semibold">4.8</p>
+                <p className="text-xs text-muted-foreground">Avg rating</p>
+              </div>
+            </div>
+          </div>
 
-      <section className="min-w-0">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <SectionHeader
-            eyebrow="Explore creators"
-            title="Browse experts by service, category, and availability"
-            description="This listing proves marketplace discovery, filtering, sorting, and empty states."
-          />
-          <p className="text-sm text-muted-foreground">
-            {filteredCreators.length} creators found
-          </p>
-        </div>
-        {filteredCreators.length > 0 ? (
-          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredCreators.map((creator) => (
-              <CreatorCard key={creator.id} creator={creator} />
+          <div className="mt-8 flex gap-2 overflow-x-auto pb-1">
+            <Button asChild variant={!params.category ? "default" : "outline"} size="sm">
+              <Link href="/explore">All</Link>
+            </Button>
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                asChild
+                variant={params.category === category.name ? "default" : "outline"}
+                size="sm"
+                className="shrink-0"
+              >
+                <Link href={`/explore?category=${encodeURIComponent(category.name)}`}>
+                  {category.name}
+                </Link>
+              </Button>
             ))}
           </div>
-        ) : (
-          <EmptyState
-            className="mt-8"
-            title="No creators found"
-            description="Try changing category, price, rating, or availability filters to widen the marketplace results."
-            actionLabel="Reset filters"
-            actionHref="/explore"
-          />
-        )}
+        </div>
       </section>
+
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[300px_1fr] lg:px-8">
+        <ExploreFilters params={params} />
+
+        <section className="min-w-0">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="size-4 text-primary" />
+                <h2 className="font-semibold">Recommended matches</h2>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {hasFocusedQuery
+                  ? "Results are narrowed by your current filters."
+                  : "Start broad, then filter by category, budget, rating, and availability."}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="rounded-md">
+                <ArrowUpDown className="size-3.5" />
+                {params.sort ?? "recommended"}
+              </Badge>
+              <Badge variant="secondary" className="rounded-md">
+                <Grid2X2 className="size-3.5" />
+                Grid
+              </Badge>
+              <Badge variant="outline" className="rounded-md">
+                <List className="size-3.5" />
+                List preview
+              </Badge>
+            </div>
+          </div>
+
+          <ActiveFilterBar
+            params={params}
+            resultCount={filteredCreators.length}
+            totalCount={creators.length}
+          />
+
+          {filteredCreators.length > 0 ? (
+            <div className="mt-6 space-y-5">
+              {filteredCreators.slice(0, 2).map((creator) => {
+                const creatorServices = getServicesByCreatorId(creator.id);
+                return (
+                  <CreatorListCard
+                    key={creator.id}
+                    creator={creator}
+                    primaryService={creatorServices[0]?.title}
+                    serviceCount={creatorServices.length}
+                  />
+                );
+              })}
+
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {filteredCreators.slice(2).map((creator) => {
+                  const creatorServices = getServicesByCreatorId(creator.id);
+                  return (
+                    <CreatorCard
+                      key={creator.id}
+                      creator={creator}
+                      primaryService={creatorServices[0]?.title}
+                      serviceCount={creatorServices.length}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <EmptyState
+              className="mt-8"
+              title="No creators found"
+              description="Try changing category, price, rating, or availability filters to widen the marketplace results."
+              actionLabel="Reset filters"
+              actionHref="/explore"
+            />
+          )}
+        </section>
+      </div>
     </main>
   );
 }
-

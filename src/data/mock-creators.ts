@@ -22,6 +22,11 @@ export const creators: CreatorProfile[] = [
     avatar: "AM",
     coverTone: "from-sky-100 via-white to-emerald-100",
     portfolio: ["Validated 40+ MVP concepts", "Built launch plans for SaaS and service founders"],
+    completedSessions: 214,
+    repeatClientRate: 38,
+    verified: true,
+    nextAvailableSlots: ["Wed, Jun 3 - 10:30 AM", "Thu, Jun 4 - 4:00 PM", "Fri, Jun 5 - 12:00 PM"],
+    outcomes: ["Validate demand before building", "Prioritize MVP features", "Clarify first launch motion"],
   },
   {
     id: "creator-002",
@@ -44,6 +49,11 @@ export const creators: CreatorProfile[] = [
     avatar: "RK",
     coverTone: "from-rose-100 via-white to-sky-100",
     portfolio: ["Redesigned B2B onboarding flows", "Improved landing page clarity for product teams"],
+    completedSessions: 167,
+    repeatClientRate: 31,
+    verified: true,
+    nextAvailableSlots: ["Tomorrow - 2:00 PM", "Thu, Jun 4 - 11:00 AM", "Sat, Jun 6 - 1:30 PM"],
+    outcomes: ["Find UX friction", "Improve conversion clarity", "Prioritize redesign fixes"],
   },
   {
     id: "creator-003",
@@ -66,6 +76,11 @@ export const creators: CreatorProfile[] = [
     avatar: "DB",
     coverTone: "from-indigo-100 via-white to-cyan-100",
     portfolio: ["Reviewed 60+ SaaS MVPs", "Advised teams on scalable app architecture"],
+    completedSessions: 243,
+    repeatClientRate: 42,
+    verified: true,
+    nextAvailableSlots: ["Thu, Jun 4 - 9:00 AM", "Fri, Jun 5 - 3:00 PM", "Mon, Jun 8 - 10:00 AM"],
+    outcomes: ["Choose a realistic stack", "Reduce build risk", "Plan technical milestones"],
   },
   {
     id: "creator-004",
@@ -88,6 +103,11 @@ export const creators: CreatorProfile[] = [
     avatar: "SK",
     coverTone: "from-amber-100 via-white to-teal-100",
     portfolio: ["Automated creator operations", "Built AI workflows for consulting teams"],
+    completedSessions: 119,
+    repeatClientRate: 29,
+    verified: true,
+    nextAvailableSlots: ["Wed, Jun 3 - 5:00 PM", "Fri, Jun 5 - 9:30 AM", "Mon, Jun 8 - 2:30 PM"],
+    outcomes: ["Map repetitive work", "Select AI tooling", "Design automation workflows"],
   },
   {
     id: "creator-005",
@@ -110,6 +130,11 @@ export const creators: CreatorProfile[] = [
     avatar: "MC",
     coverTone: "from-lime-100 via-white to-orange-100",
     portfolio: ["Planned creator product launches", "Optimized early-stage funnels"],
+    completedSessions: 156,
+    repeatClientRate: 34,
+    verified: true,
+    nextAvailableSlots: ["Friday - 11:00 AM", "Monday - 3:30 PM", "Tuesday - 10:00 AM"],
+    outcomes: ["Sharpen launch angle", "Improve funnel sequence", "Plan content calendar"],
   },
   {
     id: "creator-006",
@@ -132,6 +157,11 @@ export const creators: CreatorProfile[] = [
     avatar: "KS",
     coverTone: "from-stone-100 via-white to-yellow-100",
     portfolio: ["Refined offers for agencies", "Created positioning maps for founders"],
+    completedSessions: 88,
+    repeatClientRate: 24,
+    verified: false,
+    nextAvailableSlots: ["Today - 5:30 PM", "Tomorrow - 12:00 PM", "Friday - 4:00 PM"],
+    outcomes: ["Clarify positioning", "Improve service messaging", "Strengthen offer promise"],
   },
 ];
 
@@ -215,4 +245,3 @@ export function getCreatorBySlug(slug: string) {
 export function getServicesByCreatorId(creatorId: string) {
   return services.filter((service) => service.creatorId === creatorId);
 }
-

@@ -12,10 +12,10 @@ const navItems = [
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b bg-background/85 shadow-[0_10px_30px_rgba(15,23,42,0.05)] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2 font-semibold">
-          <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[0_10px_25px_rgba(16,94,150,0.28)]">
             <CalendarCheck className="size-5" />
           </span>
           <span>CreatorBook</span>
@@ -52,4 +52,3 @@ export function SiteHeader() {
     </header>
   );
 }
-

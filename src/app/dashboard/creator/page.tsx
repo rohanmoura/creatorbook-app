@@ -1,127 +1,206 @@
-import { DollarSign, ListChecks, TrendingUp, UserCheck } from "lucide-react";
+import Link from "next/link";
+import {
+  CalendarClock,
+  DollarSign,
+  Eye,
+  ListChecks,
+  TrendingUp,
+} from "lucide-react";
 
+import { CreatorRequestCard } from "@/components/dashboards/creator-request-card";
 import { DashboardShell } from "@/components/dashboards/dashboard-shell";
-import { StatusBadge } from "@/components/shared/status-badge";
+import { MetricCard } from "@/components/dashboards/metric-card";
+import { ProfileChecklistCard } from "@/components/dashboards/profile-checklist-card";
+import { ToastActionButton } from "@/components/shared/toast-action-button";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { bookings } from "@/data/mock-bookings";
-import { services } from "@/data/mock-creators";
+import { creators, services } from "@/data/mock-creators";
 import { formatCurrency, formatDuration } from "@/lib/formatters";
 
 export default function CreatorDashboardPage() {
-  const creatorBookings = bookings.filter((booking) => booking.creatorId === "creator-001");
-  const creatorServices = services.filter((service) => service.creatorId === "creator-001");
-  const earnings = creatorBookings.reduce((total, booking) => total + booking.price, 0);
+  const currentCreator = creators.find((creator) => creator.id === "creator-001");
+  const creatorBookings = bookings.filter(
+    (booking) => booking.creatorId === "creator-001"
+  );
+  const creatorServices = services.filter(
+    (service) => service.creatorId === "creator-001"
+  );
+  const actionableRequests = creatorBookings.filter((booking) =>
+    ["Pending", "Rescheduled"].includes(booking.status)
+  );
+  const confirmedBookings = creatorBookings.filter(
+    (booking) => booking.status === "Confirmed"
+  );
+  const earnings = creatorBookings.reduce(
+    (total, booking) => total + booking.price,
+    0
+  );
 
   return (
     <DashboardShell
       active="creator"
       title="Creator dashboard"
-      description="Manage requests, service packages, profile completion, availability, and earnings."
+      description="Manage incoming requests, services, availability, profile quality, and mock earnings from one provider workspace."
     >
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardContent className="p-4">
-            <ListChecks className="mb-3 size-5 text-primary" />
-            <p className="text-2xl font-semibold">{creatorBookings.length}</p>
-            <p className="text-sm text-muted-foreground">Booking requests</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardContent className="p-4">
-            <DollarSign className="mb-3 size-5 text-primary" />
-            <p className="text-2xl font-semibold">{formatCurrency(earnings)}</p>
-            <p className="text-sm text-muted-foreground">Mock earnings</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardContent className="p-4">
-            <TrendingUp className="mb-3 size-5 text-primary" />
-            <p className="text-2xl font-semibold">18%</p>
-            <p className="text-sm text-muted-foreground">Profile growth</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardContent className="p-4">
-            <UserCheck className="mb-3 size-5 text-primary" />
-            <p className="text-2xl font-semibold">82%</p>
-            <p className="text-sm text-muted-foreground">Profile complete</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          icon={ListChecks}
+          label="Action needed"
+          value={`${actionableRequests.length}`}
+          detail="Requests waiting for accept, reject, or reschedule."
+          tone="warning"
+        />
+        <MetricCard
+          icon={CalendarClock}
+          label="Confirmed sessions"
+          value={`${confirmedBookings.length}`}
+          detail="Sessions already accepted and ready."
+          tone="success"
+        />
+        <MetricCard
+          icon={DollarSign}
+          label="Mock earnings"
+          value={formatCurrency(earnings)}
+          detail="Total value across creator bookings."
+        />
+        <MetricCard
+          icon={TrendingUp}
+          label="Profile growth"
+          value="18%"
+          detail="Views and saves compared with last week."
+        />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_340px]">
-        <Card className="rounded-lg">
-          <CardHeader>
-            <CardTitle>Upcoming requests</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {creatorBookings.map((booking) => (
-                    <TableRow key={booking.id}>
-                      <TableCell className="font-medium">{booking.clientName}</TableCell>
-                      <TableCell>{booking.serviceName}</TableCell>
-                      <TableCell>{booking.date}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={booking.status} />
-                      </TableCell>
-                      <TableCell className="space-x-2 text-right">
-                        <Button size="sm" variant="outline">Accept</Button>
-                        <Button size="sm" variant="ghost">Reject</Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+        <section className="space-y-6">
+          <Card className="rounded-lg border-amber-200 bg-amber-50/60">
+            <CardContent className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="font-medium">Respond to new booking requests</p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  Pending and rescheduled requests should be handled quickly to
+                  keep marketplace response quality high.
+                </p>
+              </div>
+              <Button asChild>
+                <Link href="#requests">Review requests</Link>
+              </Button>
+            </CardContent>
+          </Card>
 
-        <Card className="rounded-lg">
-          <CardHeader>
-            <CardTitle>Profile checklist</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Progress value={82} />
-            <div className="mt-5 grid gap-3 text-sm">
-              {["Profile bio", "Services", "Availability", "Portfolio proof", "Verification"].map((item, index) => (
-                <div key={item} className="flex items-center justify-between rounded-md border p-3">
-                  <span>{item}</span>
-                  <span className="text-muted-foreground">{index < 4 ? "Done" : "Pending"}</span>
+          <Card id="requests" className="scroll-mt-24 rounded-lg">
+            <CardHeader>
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                <div>
+                  <CardTitle>Incoming requests</CardTitle>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Creator-side status actions for marketplace booking flow.
+                  </p>
+                </div>
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/creators/aarav-mehta">
+                    <Eye className="size-4" />
+                    View public profile
+                  </Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              {creatorBookings.map((booking) => (
+                <CreatorRequestCard key={booking.id} booking={booking} />
+              ))}
+            </CardContent>
+          </Card>
+        </section>
+
+        <div className="space-y-6">
+          <ProfileChecklistCard />
+
+          <Card className="rounded-lg">
+            <CardHeader>
+              <CardTitle>Availability</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              {(currentCreator?.nextAvailableSlots ?? []).map((slot) => (
+                <div
+                  key={slot}
+                  className="flex items-center justify-between gap-3 rounded-md border bg-muted/25 p-3 text-sm"
+                >
+                  <span>{slot}</span>
+                  <Badge variant="outline" className="rounded-md">
+                    Open
+                  </Badge>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
+              <ToastActionButton
+                label="Edit availability"
+                message="Availability editor opened"
+                description="This demo would let the creator add or remove bookable slots."
+                variant="outline"
+                className="mt-2"
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Card className="mt-6 rounded-lg">
         <CardHeader>
-          <CardTitle>Service packages</CardTitle>
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+              <CardTitle>Service packages</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Manage the offers clients can select before booking.
+              </p>
+            </div>
+            <ToastActionButton
+              label="Add package"
+              message="Package draft started"
+              description="The production flow would open a package builder with price, duration, and deliverables."
+              size="sm"
+            />
+          </div>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2">
           {creatorServices.map((service) => (
             <div key={service.id} className="rounded-lg border p-4">
-              <h3 className="font-medium">{service.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {service.description}
-              </p>
-              <div className="mt-4 flex gap-2 text-sm text-muted-foreground">
-                <span>{formatDuration(service.duration)}</span>
-                <span>{formatCurrency(service.price)}</span>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="font-medium">{service.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {service.description}
+                  </p>
+                </div>
+                <Badge variant="secondary" className="rounded-md">
+                  Active
+                </Badge>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2 text-sm text-muted-foreground">
+                <Badge variant="outline" className="rounded-md">
+                  {formatDuration(service.duration)}
+                </Badge>
+                <Badge variant="outline" className="rounded-md">
+                  {formatCurrency(service.price)}
+                </Badge>
+                <Badge variant="outline" className="rounded-md">
+                  {service.deliverables.length} deliverables
+                </Badge>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <ToastActionButton
+                  label="Edit"
+                  message={`${service.title} opened for editing`}
+                  description="Changes would update the public creator profile after saving."
+                  variant="outline"
+                />
+                <ToastActionButton
+                  label="Duplicate"
+                  message={`${service.title} duplicated`}
+                  description="A copied service package would appear as a draft."
+                  variant="ghost"
+                />
               </div>
             </div>
           ))}
@@ -130,4 +209,3 @@ export default function CreatorDashboardPage() {
     </DashboardShell>
   );
 }
-
