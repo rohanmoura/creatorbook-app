@@ -68,6 +68,17 @@ In Google Cloud Console, create an OAuth client and add this redirect URI:
 http://localhost:3000/api/auth/callback/google
 ```
 
+On Vercel, use the deployed domain for these values:
+
+```bash
+AUTH_URL="https://your-project.vercel.app"
+NEXT_PUBLIC_APP_URL="https://your-project.vercel.app"
+AUTH_TRUST_HOST="true"
+```
+
+The local SQLite database writes to `data/` during development. On Vercel, the
+app automatically uses the writable `/tmp` directory for the portfolio demo.
+
 ## Quality Checks
 
 ```bash
