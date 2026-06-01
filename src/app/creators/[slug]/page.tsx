@@ -14,6 +14,9 @@ import {
   UsersRound,
 } from "lucide-react";
 
+import { toggleSavedCreator } from "@/app/saved-creators/actions";
+import { submitReport } from "@/app/reports/actions";
+import { auth } from "@/auth";
 import { AvailabilityCard } from "@/components/marketplace/availability-card";
 import { ProfileStatCard } from "@/components/marketplace/profile-stat-card";
 import { ServicePackageCard } from "@/components/marketplace/service-package-card";
@@ -22,9 +25,16 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getCreatorBySlug, getServicesByCreatorId } from "@/data/mock-creators";
-import { reviews } from "@/data/mock-reviews";
 import { formatCurrency } from "@/lib/formatters";
+import {
+  listOpenAvailabilityByCreatorId,
+  seedAvailabilityForCreatorIfEmpty,
+} from "@/lib/server/availability-repository";
+import {
+  getCreatorBySlugFromDb,
+  getServicesByCreatorIdFromDb,
+  listReviews,
+} from "@/lib/server/marketplace-repository";
 import { cn } from "@/lib/utils";
 
 type CreatorPageProps = {
@@ -33,14 +43,26 @@ type CreatorPageProps = {
 
 export default async function CreatorPage({ params }: CreatorPageProps) {
   const { slug } = await params;
-  const creator = getCreatorBySlug(slug);
+  const creator = getCreatorBySlugFromDb(slug);
+  const session = await auth();
 
   if (!creator) {
     notFound();
   }
 
-  const creatorServices = getServicesByCreatorId(creator.id);
-  const creatorReviews = reviews.filter(
+  if (creator.profileStatus !== "approved") {
+    const canPreview =
+      session?.user?.role === "admin" || session?.user?.id === creator.userId;
+
+    if (!canPreview) {
+      notFound();
+    }
+  }
+
+  const creatorServices = getServicesByCreatorIdFromDb(creator.id);
+  seedAvailabilityForCreatorIfEmpty(creator);
+  const openAvailabilitySlots = listOpenAvailabilityByCreatorId(creator.id);
+  const creatorReviews = listReviews().filter(
     (review) => review.creatorId === creator.id
   );
   const startingService = creatorServices[0];
@@ -256,6 +278,24 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
                       <p className="mt-3 text-xs text-muted-foreground">
                         Completed booking: {review.bookingId}
                       </p>
+                      <form action={submitReport} className="mt-3">
+                        <input type="hidden" name="targetType" value="review" />
+                        <input type="hidden" name="targetId" value={review.id} />
+                        <input
+                          type="hidden"
+                          name="reason"
+                          value={`Client reported review ${review.id} on ${creator.name}'s profile.`}
+                        />
+                        <input type="hidden" name="returnTo" value={`/creators/${creator.slug}#reviews`} />
+                        <Button
+                          type="submit"
+                          size="sm"
+                          variant="ghost"
+                          disabled={session?.user?.role !== "client"}
+                        >
+                          Report review
+                        </Button>
+                      </form>
                     </CardContent>
                   </Card>
                 ))
@@ -289,7 +329,7 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
 
         <aside className="space-y-4 lg:sticky lg:top-24 lg:h-fit">
           <div id="availability" className="scroll-mt-24">
-            <AvailabilityCard creator={creator} />
+            <AvailabilityCard creator={creator} slots={openAvailabilitySlots} />
           </div>
 
           <Card className="rounded-lg">
@@ -325,9 +365,37 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
               <Button asChild className="mt-5 w-full" size="lg">
                 <Link href={`/book/${creator.slug}`}>Book session</Link>
               </Button>
-              <Button asChild variant="outline" className="mt-2 w-full">
-                <Link href="/dashboard/client">Save creator</Link>
-              </Button>
+              <form action={toggleSavedCreator} className="mt-2">
+                <input type="hidden" name="creatorId" value={creator.id} />
+                <input type="hidden" name="intent" value="save" />
+                <input type="hidden" name="returnTo" value={`/creators/${creator.slug}`} />
+                <Button
+                  type="submit"
+                  variant="outline"
+                  className="w-full"
+                  disabled={session?.user?.role !== "client"}
+                >
+                  Save creator
+                </Button>
+              </form>
+              <form action={submitReport} className="mt-2">
+                <input type="hidden" name="targetType" value="profile" />
+                <input type="hidden" name="targetId" value={creator.id} />
+                <input
+                  type="hidden"
+                  name="reason"
+                  value={`Client reported ${creator.name}'s profile for admin review.`}
+                />
+                <input type="hidden" name="returnTo" value={`/creators/${creator.slug}`} />
+                <Button
+                  type="submit"
+                  variant="ghost"
+                  className="w-full"
+                  disabled={session?.user?.role !== "client"}
+                >
+                  Report profile
+                </Button>
+              </form>
             </CardContent>
           </Card>
 

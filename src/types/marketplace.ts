@@ -65,6 +65,7 @@ export type Booking = {
   clientId: string;
   creatorId: string;
   serviceId: string;
+  availabilityId?: string | null;
   clientName: string;
   creatorName: string;
   serviceName: string;

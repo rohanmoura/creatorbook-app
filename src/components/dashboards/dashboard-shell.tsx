@@ -28,10 +28,12 @@ export function DashboardShell({
       <aside className="premium-panel h-fit rounded-lg p-3 lg:sticky lg:top-24">
         <div className="mb-3 flex items-center gap-2 px-2 py-1 text-sm font-medium">
           <BarChart3 className="size-4" />
-          Demo roles
+          Workspace
         </div>
         <nav className="grid grid-cols-3 gap-1 lg:grid-cols-1">
-          {dashboardLinks.map((item) => {
+          {dashboardLinks
+            .filter((item) => item.key === active)
+            .map((item) => {
             const Icon = item.icon;
             return (
               <Button

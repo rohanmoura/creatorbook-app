@@ -8,9 +8,14 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { SectionHeader } from "@/components/shared/section-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { auth } from "@/auth";
 import { filterCreators } from "@/lib/filters";
-import { creators, getServicesByCreatorId } from "@/data/mock-creators";
-import { categories } from "@/data/mock-categories";
+import {
+  getServicesByCreatorIdFromDb,
+  listCategories,
+  listPublicCreators,
+} from "@/lib/server/marketplace-repository";
+import { listSavedCreatorIds } from "@/lib/server/saved-creators-repository";
 import type { CreatorSort } from "@/types/marketplace";
 
 type ExplorePageProps = {
@@ -26,7 +31,25 @@ type ExplorePageProps = {
 
 export default async function ExplorePage({ searchParams }: ExplorePageProps) {
   const params = await searchParams;
-  const filteredCreators = filterCreators(creators, {
+  const session = await auth();
+  const categories = listCategories();
+  const publicCreators = listPublicCreators();
+  const savedCreatorIds =
+    session?.user?.role === "client" && session.user.id
+      ? listSavedCreatorIds(session.user.id)
+      : [];
+  const currentQuery = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      currentQuery.set(key, value);
+    }
+  });
+
+  const returnTo = currentQuery.toString()
+    ? `/explore?${currentQuery.toString()}`
+    : "/explore";
+  const filteredCreators = filterCreators(publicCreators, {
     query: params.q,
     category: params.category,
     maxPrice: params.maxPrice ? Number(params.maxPrice) : undefined,
@@ -48,13 +71,14 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <SectionHeader
+              as="h1"
               eyebrow="Explore creators"
               title="Browse experts by service, category, and availability"
               description="Search realistic creator profiles, compare trust signals, and move directly into a booking flow."
             />
             <div className="grid grid-cols-3 gap-3 rounded-lg border bg-background p-3 text-center shadow-sm">
               <div>
-                <p className="text-xl font-semibold">{creators.length}</p>
+                <p className="text-xl font-semibold">{publicCreators.length}</p>
                 <p className="text-xs text-muted-foreground">Creators</p>
               </div>
               <div>
@@ -124,32 +148,36 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
           <ActiveFilterBar
             params={params}
             resultCount={filteredCreators.length}
-            totalCount={creators.length}
+            totalCount={publicCreators.length}
           />
 
           {filteredCreators.length > 0 ? (
             <div className="mt-6 space-y-5">
               {filteredCreators.slice(0, 2).map((creator) => {
-                const creatorServices = getServicesByCreatorId(creator.id);
+                const creatorServices = getServicesByCreatorIdFromDb(creator.id);
                 return (
                   <CreatorListCard
                     key={creator.id}
                     creator={creator}
                     primaryService={creatorServices[0]?.title}
                     serviceCount={creatorServices.length}
+                    isSaved={savedCreatorIds.includes(creator.id)}
+                    returnTo={returnTo}
                   />
                 );
               })}
 
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {filteredCreators.slice(2).map((creator) => {
-                  const creatorServices = getServicesByCreatorId(creator.id);
+                  const creatorServices = getServicesByCreatorIdFromDb(creator.id);
                   return (
                     <CreatorCard
                       key={creator.id}
                       creator={creator}
                       primaryService={creatorServices[0]?.title}
                       serviceCount={creatorServices.length}
+                      isSaved={savedCreatorIds.includes(creator.id)}
+                      returnTo={returnTo}
                     />
                   );
                 })}

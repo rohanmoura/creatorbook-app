@@ -17,5 +17,12 @@ export const reports: Report[] = [
     reason: "Review context is unclear.",
     status: "open",
   },
+  {
+    id: "report-003",
+    reportedBy: "Rohan Shah",
+    targetType: "booking",
+    targetId: "CB-1029",
+    reason: "Client expected implementation work from a strategy-only package.",
+    status: "resolved",
+  },
 ];
-

@@ -17,8 +17,11 @@ import { SectionHeader } from "@/components/shared/section-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { categories } from "@/data/mock-categories";
-import { creators, getServicesByCreatorId } from "@/data/mock-creators";
+import {
+  getServicesByCreatorIdFromDb,
+  listCategories,
+  listPublicCreators,
+} from "@/lib/server/marketplace-repository";
 
 const platformStats = [
   ["Verified experts", "148"],
@@ -66,7 +69,9 @@ const roleDashboards = [
 ];
 
 export default function Home() {
-  const featuredCreators = creators
+  const categories = listCategories();
+  const publicCreators = listPublicCreators();
+  const featuredCreators = publicCreators
     .filter((creator) => creator.featured)
     .slice(0, 3);
 
@@ -279,7 +284,7 @@ export default function Home() {
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {featuredCreators.map((creator) => {
-              const creatorServices = getServicesByCreatorId(creator.id);
+              const creatorServices = getServicesByCreatorIdFromDb(creator.id);
               return (
                 <CreatorCard
                   key={creator.id}
@@ -370,6 +375,12 @@ export default function Home() {
                 {item}
               </div>
             ))}
+            <Button asChild className="mt-2 w-fit">
+              <Link href="/case-study">
+                View case study
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>

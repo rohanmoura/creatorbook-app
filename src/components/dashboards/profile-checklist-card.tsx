@@ -2,16 +2,25 @@ import { CheckCircle2, CircleDashed } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import type { CreatorProfile, Service } from "@/types/marketplace";
 
-const checklist = [
-  { label: "Profile bio", done: true },
-  { label: "Service packages", done: true },
-  { label: "Availability slots", done: true },
-  { label: "Portfolio proof", done: true },
-  { label: "Admin verification", done: false },
-];
+type ProfileChecklistCardProps = {
+  creator: CreatorProfile;
+  services: Service[];
+};
 
-export function ProfileChecklistCard() {
+function buildChecklist(creator: CreatorProfile, services: Service[]) {
+  return [
+    { label: "Profile bio", done: creator.bio.trim().length >= 40 },
+    { label: "Service packages", done: services.length > 0 },
+    { label: "Availability slots", done: creator.nextAvailableSlots.length > 0 },
+    { label: "Portfolio proof", done: creator.portfolio.length > 0 },
+    { label: "Admin verification", done: creator.profileStatus === "approved" },
+  ];
+}
+
+export function ProfileChecklistCard({ creator, services }: ProfileChecklistCardProps) {
+  const checklist = buildChecklist(creator, services);
   const completed = checklist.filter((item) => item.done).length;
   const percent = Math.round((completed / checklist.length) * 100);
 
@@ -55,4 +64,3 @@ export function ProfileChecklistCard() {
     </Card>
   );
 }
-

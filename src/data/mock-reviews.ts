@@ -28,5 +28,22 @@ export const reviews: Review[] = [
     text: "Riya's audit was specific, useful, and easy for our developer to act on.",
     createdAt: "2026-05-20",
   },
+  {
+    id: "review-004",
+    bookingId: "CB-1030",
+    clientId: "user-client-9",
+    creatorId: "creator-009",
+    rating: 5,
+    text: "Tanya made the portfolio gaps obvious and gave me a practical interview prep plan.",
+    createdAt: "2026-05-28",
+  },
+  {
+    id: "review-005",
+    bookingId: "CB-1028",
+    clientId: "user-client-7",
+    creatorId: "creator-007",
+    rating: 5,
+    text: "Elena turned our messy content ideas into a system our team can actually repeat.",
+    createdAt: "2026-05-31",
+  },
 ];
-

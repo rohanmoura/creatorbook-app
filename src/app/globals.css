@@ -122,12 +122,12 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply overflow-x-hidden bg-background text-foreground;
     background:
       linear-gradient(180deg, oklch(0.995 0.004 236) 0%, oklch(0.975 0.012 236) 42%, oklch(0.985 0.006 236) 100%);
   }
   html {
-    @apply font-sans;
+    @apply overflow-x-hidden font-sans;
   }
   a {
     @apply underline-offset-4;
@@ -208,6 +208,7 @@
     position: absolute;
     left: 50%;
     top: 76px;
+    z-index: 0;
     height: 190px;
     width: 2px;
     transform: translateX(-50%);
@@ -224,7 +225,7 @@
     position: absolute;
     left: 50%;
     top: 64px;
-    z-index: 20;
+    z-index: 1;
     height: 14px;
     width: 14px;
     transform: translateX(-50%);
@@ -237,14 +238,17 @@
   }
 
   .loop-card-1 {
+    z-index: 2;
     animation: loop-card-one 3.8s ease-in-out infinite;
   }
 
   .loop-card-2 {
+    z-index: 2;
     animation: loop-card-two 3.8s ease-in-out infinite;
   }
 
   .loop-card-3 {
+    z-index: 2;
     animation: loop-card-three 3.8s ease-in-out infinite;
   }
 

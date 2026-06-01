@@ -53,7 +53,7 @@ export function ServicePackageCard({
       <CardFooter className="justify-between gap-3">
         <p className="text-sm text-muted-foreground">Request approval required</p>
         <Button asChild size="sm">
-          <Link href={`/book/${creatorSlug}`}>
+          <Link href={`/book/${creatorSlug}?service=${service.id}`}>
             Select
             <ArrowRight className="size-4" />
           </Link>
@@ -62,4 +62,3 @@ export function ServicePackageCard({
     </Card>
   );
 }
-

@@ -3,13 +3,23 @@ import { CalendarClock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { AvailabilitySlot } from "@/lib/server/availability-repository";
 import type { CreatorProfile } from "@/types/marketplace";
 
 type AvailabilityCardProps = {
   creator: CreatorProfile;
+  slots?: AvailabilitySlot[];
 };
 
-export function AvailabilityCard({ creator }: AvailabilityCardProps) {
+export function AvailabilityCard({ creator, slots }: AvailabilityCardProps) {
+  const visibleSlots =
+    slots?.length
+      ? slots.map(
+          (slot) =>
+            `${slot.date} ${slot.startTime}-${slot.endTime} (${slot.timezone})`
+        )
+      : creator.nextAvailableSlots;
+
   return (
     <Card className="rounded-lg">
       <CardHeader>
@@ -20,7 +30,7 @@ export function AvailabilityCard({ creator }: AvailabilityCardProps) {
       </CardHeader>
       <CardContent>
         <div className="grid gap-2">
-          {creator.nextAvailableSlots.map((slot) => (
+          {visibleSlots.map((slot) => (
             <div
               key={slot}
               className="flex items-center justify-between gap-3 rounded-md border bg-muted/25 p-3 text-sm"
@@ -37,4 +47,3 @@ export function AvailabilityCard({ creator }: AvailabilityCardProps) {
     </Card>
   );
 }
-

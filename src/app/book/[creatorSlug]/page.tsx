@@ -4,28 +4,58 @@ import { ArrowLeft, CalendarDays, CheckCircle2, Clock3 } from "lucide-react";
 
 import { BookingStepper } from "@/components/booking/booking-stepper";
 import { BookingSummaryCard } from "@/components/booking/booking-summary-card";
+import { ActionStatusAlert } from "@/components/shared/action-status-alert";
 import { SectionHeader } from "@/components/shared/section-header";
+import { SubmitButton } from "@/components/shared/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { getCreatorBySlug, getServicesByCreatorId } from "@/data/mock-creators";
 import { formatCurrency, formatDuration } from "@/lib/formatters";
+import { requireRole } from "@/lib/server/auth-guards";
+import {
+  formatAvailabilityLabel,
+  getAvailabilityDurationMinutes,
+  listOpenAvailabilityByCreatorId,
+  seedAvailabilityForCreatorIfEmpty,
+} from "@/lib/server/availability-repository";
+import {
+  getCreatorBySlugFromDb,
+  getServicesByCreatorIdFromDb,
+} from "@/lib/server/marketplace-repository";
+
+import { createBookingRequest } from "./actions";
 
 type BookingPageProps = {
   params: Promise<{ creatorSlug: string }>;
+  searchParams: Promise<{ service?: string; booking?: string }>;
 };
 
-export default async function BookingPage({ params }: BookingPageProps) {
-  const { creatorSlug } = await params;
-  const creator = getCreatorBySlug(creatorSlug);
+export default async function BookingPage({
+  params,
+  searchParams,
+}: BookingPageProps) {
+  await requireRole("client");
 
-  if (!creator) {
+  const { creatorSlug } = await params;
+  const query = await searchParams;
+  const creator = getCreatorBySlugFromDb(creatorSlug);
+
+  if (!creator || creator.profileStatus !== "approved") {
     notFound();
   }
 
-  const creatorServices = getServicesByCreatorId(creator.id);
-  const selectedService = creatorServices[0];
+  const creatorServices = getServicesByCreatorIdFromDb(creator.id);
+  const selectedService =
+    creatorServices.find((service) => service.id === query.service) ??
+    creatorServices[0];
+  seedAvailabilityForCreatorIfEmpty(creator);
+  const openSlots = listOpenAvailabilityByCreatorId(creator.id).filter(
+    (slot) =>
+      selectedService
+        ? getAvailabilityDurationMinutes(slot) >= selectedService.duration
+        : true
+  );
 
   return (
     <main>
@@ -39,6 +69,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
           </Button>
           <div className="grid gap-6 lg:grid-cols-[1fr_360px] lg:items-end">
             <SectionHeader
+              as="h1"
               eyebrow="Booking flow"
               title={`Request a session with ${creator.name}`}
               description="Select a service package, choose a preferred time, add useful context, and submit a pending booking request."
@@ -61,7 +92,17 @@ export default async function BookingPage({ params }: BookingPageProps) {
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_360px] lg:px-8">
-        <form action="/booking/success" className="grid gap-6">
+        <form action={createBookingRequest} className="grid gap-6">
+          <input type="hidden" name="creator" value={creator.slug} />
+          <ActionStatusAlert
+            status={query.booking}
+            messages={{
+              invalid:
+                "Please select a service, choose an open time slot, and add useful context before submitting.",
+              "slot-unavailable":
+                "That slot is no longer open. Choose another available slot.",
+            }}
+          />
           <Card className="rounded-lg">
             <CardHeader>
               <div className="flex items-center justify-between gap-4">
@@ -72,7 +113,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
               </div>
             </CardHeader>
             <CardContent className="grid gap-3">
-              {creatorServices.map((service, index) => (
+              {creatorServices.map((service) => (
                 <label
                   key={service.id}
                   className="grid cursor-pointer gap-4 rounded-lg border p-4 transition hover:border-primary/40 has-checked:border-primary has-checked:bg-secondary/50 md:grid-cols-[auto_1fr_auto]"
@@ -81,7 +122,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
                     type="radio"
                     name="service"
                     value={service.id}
-                    defaultChecked={index === 0}
+                    defaultChecked={service.id === selectedService?.id}
                     className="mt-1"
                   />
                   <span className="min-w-0">
@@ -124,51 +165,44 @@ export default async function BookingPage({ params }: BookingPageProps) {
               </div>
             </CardHeader>
             <CardContent className="grid gap-5">
-              <div className="grid gap-3 md:grid-cols-3">
-                {creator.nextAvailableSlots.map((slot, index) => (
+              {openSlots.length > 0 ? (
+                <div className="grid gap-3 md:grid-cols-3">
+                {openSlots.map((slot, index) => (
                   <label
-                    key={slot}
+                    key={slot.id}
                     className="cursor-pointer rounded-lg border p-4 transition hover:border-primary/40 has-checked:border-primary has-checked:bg-secondary/50"
                   >
                     <input
                       type="radio"
-                      name="slot"
-                      value={slot}
+                      name="availabilityId"
+                      value={slot.id}
                       defaultChecked={index === 0}
                       className="sr-only"
                     />
                     <CalendarDays className="mb-3 size-5 text-primary" />
-                    <span className="block text-sm font-medium">{slot}</span>
+                    <span className="block text-sm font-medium">
+                      {slot.date}
+                    </span>
+                    <span className="mt-1 block text-sm">
+                      {slot.startTime}-{slot.endTime}
+                    </span>
                     <span className="mt-1 block text-xs text-muted-foreground">
-                      Available for request
+                      {slot.timezone}
                     </span>
                   </label>
                 ))}
-              </div>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">
+                  No open slots are available right now. Check back after the
+                  creator adds new availability.
+                </div>
+              )}
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="grid gap-2 text-sm font-medium">
-                  Custom date
-                  <input
-                    required
-                    type="date"
-                    name="date"
-                    defaultValue="2026-06-03"
-                    className="h-10 rounded-md border bg-background px-3 font-normal outline-none focus:ring-2 focus:ring-ring/30"
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-medium">
-                  Time
-                  <select
-                    name="time"
-                    className="h-10 rounded-md border bg-background px-3 font-normal outline-none focus:ring-2 focus:ring-ring/30"
-                  >
-                    <option>10:30 AM</option>
-                    <option>2:00 PM</option>
-                    <option>5:30 PM</option>
-                  </select>
-                </label>
-              </div>
+              <p className="text-xs text-muted-foreground">
+                Slots are structured as date, start time, end time, and timezone.
+                Selected slot: {openSlots[0] ? formatAvailabilityLabel(openSlots[0]) : "None"}
+              </p>
             </CardContent>
           </Card>
 
@@ -214,9 +248,9 @@ export default async function BookingPage({ params }: BookingPageProps) {
                   confirmation timeline.
                 </p>
               </div>
-              <Button type="submit" size="lg">
+              <SubmitButton size="lg" pendingLabel="Submitting">
                 Submit request
-              </Button>
+              </SubmitButton>
             </CardContent>
           </Card>
         </form>

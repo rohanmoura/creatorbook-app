@@ -9,8 +9,11 @@ export function AppFooter() {
           <Link href="/explore" className="hover:text-foreground">
             Explore creators
           </Link>
-          <Link href="/dashboard/admin" className="hover:text-foreground">
-            Admin demo
+          <Link href="/case-study" className="hover:text-foreground">
+            Case study
+          </Link>
+          <Link href="/auth/sign-in" className="hover:text-foreground">
+            Sign in
           </Link>
         </div>
       </div>

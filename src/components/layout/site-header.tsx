@@ -1,24 +1,23 @@
 import Link from "next/link";
-import { CalendarCheck, LayoutDashboard, Search, ShieldCheck } from "lucide-react";
+import { CalendarCheck, Search } from "lucide-react";
 
+import { AuthStatus } from "@/components/auth/auth-status";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "/explore", label: "Explore" },
-  { href: "/dashboard/client", label: "Client" },
-  { href: "/dashboard/creator", label: "Creator" },
-  { href: "/dashboard/admin", label: "Admin" },
+  { href: "/case-study", label: "Case study" },
 ];
 
-export function SiteHeader() {
+export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-30 border-b bg-background/85 shadow-[0_10px_30px_rgba(15,23,42,0.05)] backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex min-w-0 items-center gap-2 font-semibold">
           <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[0_10px_25px_rgba(16,94,150,0.28)]">
             <CalendarCheck className="size-5" />
           </span>
-          <span>CreatorBook</span>
+          <span className="truncate">CreatorBook</span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
@@ -29,22 +28,12 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
-            <Link href="/auth/sign-in">
-              <ShieldCheck className="size-4" />
-              Sign in
-            </Link>
-          </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <AuthStatus />
           <Button asChild size="sm">
             <Link href="/explore">
               <Search className="size-4" />
-              Browse
-            </Link>
-          </Button>
-          <Button asChild variant="ghost" size="icon-sm" className="md:hidden">
-            <Link href="/dashboard/client" aria-label="Open dashboard">
-              <LayoutDashboard className="size-4" />
+              <span className="hidden sm:inline">Browse</span>
             </Link>
           </Button>
         </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, CalendarPlus, Clock, MapPin, Star } from "lucide-react";
+import { ArrowRight, Bookmark, CalendarPlus, Clock, MapPin, Star } from "lucide-react";
 
+import { toggleSavedCreator } from "@/app/saved-creators/actions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,12 +20,16 @@ type CreatorCardProps = {
   creator: CreatorProfile;
   primaryService?: string;
   serviceCount?: number;
+  isSaved?: boolean;
+  returnTo?: string;
 };
 
 export function CreatorCard({
   creator,
   primaryService,
   serviceCount,
+  isSaved = false,
+  returnTo = "/explore",
 }: CreatorCardProps) {
   return (
     <Card className="premium-card-hover h-full rounded-lg pt-0">
@@ -104,6 +109,14 @@ export function CreatorCard({
           {creator.responseTime}
         </span>
         <div className="flex gap-2">
+          <form action={toggleSavedCreator}>
+            <input type="hidden" name="creatorId" value={creator.id} />
+            <input type="hidden" name="intent" value={isSaved ? "unsave" : "save"} />
+            <input type="hidden" name="returnTo" value={returnTo} />
+            <Button type="submit" size="sm" variant="outline" aria-label={isSaved ? "Unsave creator" : "Save creator"}>
+              <Bookmark className={cn("size-4", isSaved && "fill-current")} />
+            </Button>
+          </form>
           <Button asChild size="sm" variant="outline">
             <Link href={`/creators/${creator.slug}`}>
               View
@@ -126,6 +139,8 @@ export function CreatorListCard({
   creator,
   primaryService,
   serviceCount,
+  isSaved = false,
+  returnTo = "/explore",
 }: CreatorCardProps) {
   return (
     <Card className="premium-card-hover rounded-lg">
@@ -189,6 +204,14 @@ export function CreatorListCard({
             </span>
           </div>
           <div className="flex gap-2">
+            <form action={toggleSavedCreator}>
+              <input type="hidden" name="creatorId" value={creator.id} />
+              <input type="hidden" name="intent" value={isSaved ? "unsave" : "save"} />
+              <input type="hidden" name="returnTo" value={returnTo} />
+              <Button type="submit" size="sm" variant="outline" aria-label={isSaved ? "Unsave creator" : "Save creator"}>
+                <Bookmark className={cn("size-4", isSaved && "fill-current")} />
+              </Button>
+            </form>
             <Button asChild size="sm" variant="outline" className="flex-1">
               <Link href={`/creators/${creator.slug}`}>
                 View
